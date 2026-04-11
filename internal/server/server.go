@@ -1,12 +1,9 @@
+// Package server implements the TCP listener and client lifecycle for TCPChat.
 package server
 
-import "sync"
-
-// Server holds the TCP listener state and connected clients.
+// Server manages the TCP listener and connected clients.
 type Server struct {
-	clients map[*Client]struct{}
-	history []string
-	mu      sync.Mutex
+	reg registry
 }
 
-// TODO (Vasiliki): implement Start(port string) error — bind listener, accept connections, enforce max 10
+// TODO (Vasiliki): Start(port string) error — bind listener, accept connections, enforce max 10

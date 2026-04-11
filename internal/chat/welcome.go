@@ -1,5 +1,4 @@
-// Package server implements the TCPChat server logic.
-package server
+package chat
 
 import (
 	"bufio"
@@ -27,20 +26,14 @@ const welcomeBanner = "Welcome to TCP-Chat!\n" +
 	"     `-'       `--'\n" +
 	"[ENTER YOUR NAME]: "
 
-// Client represents a connected chat client.
-type Client struct {
-	Conn net.Conn
-	Name string
-}
-
-// sendWelcome sends the Linux banner and name prompt to the client.
-func sendWelcome(conn net.Conn) {
+// SendWelcome sends the Linux banner and name prompt to the client.
+func SendWelcome(conn net.Conn) {
 	fmt.Fprint(conn, welcomeBanner)
 }
 
-// readName reads a non-empty name from the client connection.
+// ReadName reads a non-empty name from the client connection.
 // If the client sends an empty name, it re-prompts until a valid name is given.
-func readName(conn net.Conn) (string, error) {
+func ReadName(conn net.Conn) (string, error) {
 	scanner := bufio.NewScanner(conn)
 	for scanner.Scan() {
 		name := strings.TrimSpace(scanner.Text())

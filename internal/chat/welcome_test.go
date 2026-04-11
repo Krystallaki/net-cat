@@ -1,4 +1,4 @@
-package server
+package chat
 
 import (
 	"bufio"
@@ -7,9 +7,6 @@ import (
 	"strings"
 	"testing"
 )
-
-// net.Pipe() δημιουργεί δύο συνδεδεμένα net.Conn.
-// Ό,τι γράψουμε στο serverSide φαίνεται στο clientSide.
 
 func TestReadName_ValidOnFirstTry(t *testing.T) {
 	serverSide, clientSide := net.Pipe()
@@ -20,7 +17,7 @@ func TestReadName_ValidOnFirstTry(t *testing.T) {
 		fmt.Fprint(clientSide, "Yenlik\n")
 	}()
 
-	name, err := readName(serverSide)
+	name, err := ReadName(serverSide)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -34,16 +31,14 @@ func TestReadName_EmptyThenValid(t *testing.T) {
 	defer serverSide.Close()
 	defer clientSide.Close()
 
-	// Στέλνουμε κενή γραμμή πρώτα, μετά έγκυρο όνομα
 	go func() {
 		fmt.Fprint(clientSide, "\n")
-		// Διαβάζουμε το re-prompt που έστειλε ο server
 		buf := make([]byte, len("[ENTER YOUR NAME]: "))
 		clientSide.Read(buf)
 		fmt.Fprint(clientSide, "Lee\n")
 	}()
 
-	name, err := readName(serverSide)
+	name, err := ReadName(serverSide)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -58,7 +53,7 @@ func TestSendWelcome_ContainsBanner(t *testing.T) {
 	defer clientSide.Close()
 
 	go func() {
-		sendWelcome(serverSide)
+		SendWelcome(serverSide)
 		serverSide.Close()
 	}()
 
