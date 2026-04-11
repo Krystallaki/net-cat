@@ -2,8 +2,10 @@
 package server
 
 import (
+	"bufio"
 	"fmt"
 	"net"
+	"strings"
 )
 
 const welcomeBanner = "Welcome to TCP-Chat!\n" +
@@ -34,4 +36,21 @@ type Client struct {
 // sendWelcome sends the Linux banner and name prompt to the client.
 func sendWelcome(conn net.Conn) {
 	fmt.Fprint(conn, welcomeBanner)
+}
+
+// readName reads a non-empty name from the client connection.
+// If the client sends an empty name, it re-prompts until a valid name is given.
+func readName(conn net.Conn) (string, error) {
+	scanner := bufio.NewScanner(conn)
+	for scanner.Scan() {
+		name := strings.TrimSpace(scanner.Text())
+		if name != "" {
+			return name, nil
+		}
+		fmt.Fprint(conn, "[ENTER YOUR NAME]: ")
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+	return "", fmt.Errorf("connection closed before name was provided")
 }
