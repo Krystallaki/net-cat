@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// TODO (Vasiliki): parse args, validate port, start server
-	// Usage: go run . [port]
+	// Usage: go run ./cmd [port]
 	// Default port: 8989
 	// Error if more than 1 arg: [USAGE]: ./TCPChat $port
 	args := os.Args[1:]

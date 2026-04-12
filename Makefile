@@ -1,7 +1,7 @@
 .PHONY: all run build fmt lint test coverage vet tidy check
 
 BINARY  := TCPChat
-CMD_DIR := ./cmd/TCPChat
+CMD_DIR := ./cmd
 
 all: build
 

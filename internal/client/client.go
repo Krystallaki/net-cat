@@ -1,5 +1,5 @@
-// Package chat implements the chat logic for TCPChat.
-package chat
+// Package client defines the shared types and lifecycle logic for TCPChat.
+package client
 
 import "net"
 

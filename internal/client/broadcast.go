@@ -1,4 +1,4 @@
-package chat
+package client
 
 // Broadcast sends msg to all clients in the provided slice except exclude.
 // exclude may be nil for server announcements such as join/leave.

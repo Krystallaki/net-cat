@@ -1,4 +1,4 @@
-package chat
+package client
 
 import (
 	"bufio"
@@ -47,3 +47,6 @@ func ReadName(conn net.Conn) (string, error) {
 	}
 	return "", fmt.Errorf("connection closed before name was provided")
 }
+
+// TODO (Krysta): NotifyJoin broadcasts "<name> has joined our chat..." to all clients except the one who joined.
+// TODO (Krysta): NotifyLeave broadcasts "<name> has left our chat..." to all remaining clients.

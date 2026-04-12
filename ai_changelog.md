@@ -1,24 +1,19 @@
 # AI Changelog
 
-Log of significant architectural and design decisions made during development.
-Format: `## [YYYY-MM-DD] — <decision title>`
+Log of significant architectural decisions.
+Format: `## YYYY-MM-DD — Name` / `Decision:` / `Reason:`
+Rule: update in the **same commit** as the decision. Never a separate commit.
 
 ---
 
-## [2026-04-11] — Initial repo structure
+## 2026-04-11 — Krystallenia
+Decision: Use `cmd/` for the entry point and `internal/` split into `server/`, `client/`, `messaging/`.
+Reason: Keeps TCP concerns (`server/`) separate from chat types/lifecycle (`client/`) and message logic (`messaging/`). `server/` imports `client/`, never the other way — no circular dependencies.
 
-**Decision:** Use `cmd/TCPChat/` for the entry point and `internal/server/` for all server logic.
+## 2026-04-11 — Krystallenia
+Decision: `Broadcast(clients []*Client, msg string, exclude *Client)` lives in `internal/client/broadcast.go`.
+Reason: Both join/leave notifications (Krystallenia) and Theo's message forwarding call the same function. Takes a `[]*Client` slice so it has no dependency on the registry — the server layer passes in the snapshot. One lock point, no duplication.
 
-**Why:** Follows Go project layout conventions from the team's previous project. Keeps `main.go` thin (arg parsing + server start) and all logic testable inside `internal/`.
-
-**Who:** Krysta (repo setup, day-1 responsibility).
-
----
-
-## [2026-04-11] — Krysta owns shared broadcast() utility
-
-**Decision:** A single `broadcast(msg string, exclude *Client)` function lives in `internal/server/broadcast.go`, owned by Krysta, called by Theo's messaging code.
-
-**Why:** Both join/leave notifications (Krysta) and client message forwarding (Theo) need to iterate the client registry and write to connections. Two separate implementations would duplicate logic and risk lock contention. One shared function, one lock point.
-
-**Who:** Agreed by all three team members.
+## 2026-04-11 — Krystallenia
+Decision: `Broadcast` takes `exclude *Client` not `exclude string`.
+Reason: Comparing pointers is safer than comparing names which could collide if two clients share a name.
