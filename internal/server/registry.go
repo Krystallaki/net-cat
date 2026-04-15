@@ -5,22 +5,25 @@ import (
 	"sync"
 )
 
-// registry is a thread-safe set of connected clients.
 type registry struct {
 	mu      sync.Mutex
 	clients map[*client.Client]struct{}
 }
-
-// TODO (Vasiliki): Add(c *client.Client)    — register a new client
-// TODO (Vasiliki): Remove(c *client.Client) — deregister a client on disconnect
-// TODO (Vasiliki): All() []*client.Client   — return a snapshot of all clients (used by Broadcast)
-func(r *registry) Add(c *client.Client) {
-r.mu.Lock()
-defer r.mu.Unlock()
-r.clients[c] = struct{}{}
-}
-func(r *registry)Remove (c *client.Client){
+func (r *registry) Add(c *client.Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	delete(r.clients,c)
+	r.clients[c] = struct{}{}
+}
+func (r *registry) Remove(c *client.Client) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.clients, c)
+}
+func (r *registry) All() (s []*client.Client) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for c := range r.clients {
+		s = append(s, c)
+	}
+	return s
 }
