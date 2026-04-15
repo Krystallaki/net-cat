@@ -19,3 +19,8 @@ r.mu.Lock()
 defer r.mu.Unlock()
 r.clients[c] = struct{}{}
 }
+func(r *registry)Remove (c *client.Client){
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	delete(r.clients,c)
+}
