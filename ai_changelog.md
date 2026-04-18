@@ -50,7 +50,31 @@ Reason: The new client must see conversation context before their arrival is ann
 
 # Vasiliki
 
-<!-- Vasiliki: add entries here in the same commit as your code changes -->
+## 2026-04-15 — Vasiliki
+Decision: Use `map[*client.Client]struct{}` with `sync.Mutex` to store connected clients in a `registry` struct.
+Reason: A map with empty struct values is the idiomatic Go set — zero memory overhead per entry. A mutex is required because multiple goroutines (one per connection) call Add/Remove concurrently; without it, map writes race and corrupt memory.
+AI prompt: "What do you mean by store clients, what is a mutex, what are goroutines, why do I define a structure?"
+
+## 2026-04-15 — Vasiliki
+Decision: Build the registry incrementally — understand the packages (`sync`, `net-cat/internal/client`) before writing any method.
+Reason: Starting from the imports forces understanding of what each dependency provides before using it. `sync` gives `Mutex` for safe concurrent access; the `client` package defines the type being stored.
+AI prompt: "Go into teacher mode and help me build the registry. What packages should I use and what do these packages do? What libraries inside the packages should I use and why? Where do I start building the registry — without giving me the code."
+
+## 2026-04-15 — Vasiliki
+Decision: Learn Go syntax by writing it, not by reading explanations — e.g. how to call `mu.Lock()`, how `defer` works, how to write a method receiver.
+Reason: Theoretical explanation of what to do does not transfer to knowing how to write it in Go. The missing skill was syntax and Go idioms, not concept understanding.
+AI prompt: "The point isn't to explain what to do — the point is to give me the necessary knowledge of how to write it in Go without giving me the code. That's the skill you need to master — writing and explaining again and again. Explaining what I need to do theoretically doesn't help me understand how to write it in Go, and that's the biggest issue, because I said I don't know Go, I am learning. I haven't used sync in the past, I don't know how to lock a mutex, etc."
+
+## 2026-04-15 — Vasiliki
+Decision: Use `defer r.mu.Unlock()` immediately after `r.mu.Lock()` in every method.
+Reason: First attempt placed `make()` inside Add and called `r.muUnlock()` (missing dot). `defer` guarantees the unlock runs even if the function panics, and placing it right after Lock makes it impossible to forget.
+AI prompt: [first attempt at Add with bugs — map re-created on every call, missing dot on Unlock, no defer]
+
+## 2026-04-15 — Vasiliki
+Decision: Implement `Add`, `Remove`, and `All` as the three methods of `registry`.
+Reason: These are the minimum operations a set needs — register, deregister, and snapshot. `All` returns a slice copy so callers iterate safely without holding the lock.
+AI prompt: [iterative implementation of Add → Remove → All, each refined from previous attempt]
+
 
 ---
 
