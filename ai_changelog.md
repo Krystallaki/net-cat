@@ -90,6 +90,11 @@ Decision: Use an infinite `for` loop calling `s.listener.Accept()` to handle inc
 Reason: `Accept()` blocks until a connection arrives — a loop is the only way to keep accepting multiple clients. Each accepted connection is wrapped in a `client.Client` and added to the registry so the server always has an up-to-date snapshot of who is connected.
 AI prompt: "Explain what we have done so far" / [attempt with wrong make syntax for newClient → correct form using `&client.Client{Conn: conn, Name: ""}`]
 
+## 2026-04-19 — Vasiliki
+Decision: Enforce a maximum of 10 concurrent clients by checking `len(s.registry.clients) >= 10` before registering a new connection, writing a rejection message and closing the connection if the limit is reached.
+Reason: The check must happen before `Add` — once a client is registered it is visible to `Broadcast`. Writing `[]byte("Chat is full. Try again later.\n")` is required because `conn.Write` takes a byte slice, not a string. First attempt passed a raw string literal instead of a byte slice.
+AI prompt: "According to my task, what else do I have to do?" / "How can I send a message through conn?" / [iterative fix: raw string instead of byte slice → correct form]
+
 ---
 
 # Theo

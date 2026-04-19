@@ -25,6 +25,11 @@ for  {
 		log.Println("failed to accept connection:",err)
 		continue
 	}
+	if len(s.registry.clients)>=10 {
+		conn.Write([]byte("Chat is full. Try again later.\n"))	
+		conn.Close()
+		continue
+	}
 	newClient:=&client.Client{Conn:conn,Name:""}
 	s.registry.Add(newClient)
 	go handleClient(newClient)
