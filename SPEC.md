@@ -209,7 +209,7 @@ Produced using `time.Now().Format("2006-01-02 15:04:05")`.
 |------|---------|
 | **TDD** | Test file created first. Test written and failing before implementation. |
 | **Conventional commits** | `type(scope): description`. Types: `feat` `fix` `test` `docs` `refactor` `chore`. |
-| **ai_changelog.md** | Updated in the same commit as the decision. Never a separate commit. |
+| **ai_changelog.md** | Updated with every significant decision. |
 | **No vibe coding** | No large AI-generated blobs pushed without review. Every generated piece must be understood line by line before committing. |
 
 ---
