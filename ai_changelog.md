@@ -9,7 +9,7 @@
 > - Update in the **same commit** as the code change. Never a separate commit.
 > - Only record decisions that are not obvious from the code itself.
 > - When AI assistance shaped a decision, include the prompt that led to it.
-> - Format per entry: `Decision:` / `Reason:` / `AI prompt:` (optional)
+> - Format per entry: `**Decision:**` / `**Reason:**` / `**AI prompt:**` (optional)
 
 ---
 
@@ -17,9 +17,9 @@
 
 ```
 ## YYYY-MM-DD — Name
-Decision: one clear sentence describing what was decided
-Reason: technical justification — not "we thought it was good" but WHY
-AI prompt: [optional] the question asked to Claude/Copilot/etc that shaped this
+**Decision:** one clear sentence describing what was decided
+**Reason:** technical justification — not "we thought it was good" but WHY
+**AI prompt:** [optional] the question asked to Claude/Copilot/etc that shaped this
 ```
 
 ---
@@ -27,22 +27,22 @@ AI prompt: [optional] the question asked to Claude/Copilot/etc that shaped this
 # Krystallenia
 
 ## 2026-04-11 — Krystallenia
-Decision: Use `cmd/` for the entry point and `internal/` split into `server/`, `client/`, `messaging/`.
-Reason: Keeps TCP concerns (`server/`) separate from chat types/lifecycle (`client/`) and message logic (`messaging/`). `server/` imports `client/`, never the other way — no circular dependencies possible.
-AI prompt: "What is the standard Go project layout for a small TCP server project with cmd and internal packages?"
+**Decision:** Use `cmd/` for the entry point and `internal/` split into `server/`, `client/`, `messaging/`.
+**Reason:** Keeps TCP concerns (`server/`) separate from chat types/lifecycle (`client/`) and message logic (`messaging/`). `server/` imports `client/`, never the other way — no circular dependencies possible.
+**AI prompt:** "What is the standard Go project layout for a small TCP server project with cmd and internal packages?"
 
 ## 2026-04-11 — Krystallenia
-Decision: `Broadcast` takes `[]*Client` slice as parameter, not a direct registry reference.
-Reason: Removes the dependency on the registry package from broadcast.go — the server layer passes a snapshot. This makes Broadcast independently testable without a live registry.
-AI prompt: "Should broadcast() access the registry directly or receive a slice of clients? What are the tradeoffs for testability and circular imports?"
+**Decision:** `Broadcast` takes `[]*Client` slice as parameter, not a direct registry reference.
+**Reason:** Removes the dependency on the registry package from broadcast.go — the server layer passes a snapshot. This makes Broadcast independently testable without a live registry.
+**AI prompt:** "Should broadcast() access the registry directly or receive a slice of clients? What are the tradeoffs for testability and circular imports?"
 
 ## 2026-04-11 — Krystallenia
-Decision: `Broadcast` takes `exclude *Client` not `exclude string`.
-Reason: Pointer comparison is O(1) and unambiguous. Name comparison would fail if two clients share a name — pointers are unique per connection.
+**Decision:** `Broadcast` takes `exclude *Client` not `exclude string`.
+**Reason:** Pointer comparison is O(1) and unambiguous. Name comparison would fail if two clients share a name — pointers are unique per connection.
 
 ## 2026-04-11 — Krystallenia
-Decision: Send message history to new client BEFORE broadcasting the join notification.
-Reason: The new client must see conversation context before their arrival is announced. If reversed, the join notification appears before the history in the new client's terminal — confusing and wrong.
+**Decision:** Send message history to new client BEFORE broadcasting the join notification.
+**Reason:** The new client must see conversation context before their arrival is announced. If reversed, the join notification appears before the history in the new client's terminal — confusing and wrong.
 
 <!-- add new entries below this line as you work -->
 
@@ -51,29 +51,29 @@ Reason: The new client must see conversation context before their arrival is ann
 # Vasiliki
 
 ## 2026-04-15 — Vasiliki
-Decision: Use `map[*client.Client]struct{}` with `sync.Mutex` to store connected clients in a `registry` struct.
-Reason: A map with empty struct values is the idiomatic Go set — zero memory overhead per entry. A mutex is required because multiple goroutines (one per connection) call Add/Remove concurrently; without it, map writes race and corrupt memory.
-AI prompt: "What do you mean by store clients, what is a mutex, what are goroutines, why do I define a structure?"
+**Decision:** Use `map[*client.Client]struct{}` with `sync.Mutex` to store connected clients in a `registry` struct.
+**Reason:** A map with empty struct values is the idiomatic Go set — zero memory overhead per entry. A mutex is required because multiple goroutines (one per connection) call Add/Remove concurrently; without it, map writes race and corrupt memory.
+**AI prompt:** "What do you mean by store clients, what is a mutex, what are goroutines, why do I define a structure?"
 
 ## 2026-04-15 — Vasiliki
-Decision: Build the registry incrementally — understand the packages (`sync`, `net-cat/internal/client`) before writing any method.
-Reason: Starting from the imports forces understanding of what each dependency provides before using it. `sync` gives `Mutex` for safe concurrent access; the `client` package defines the type being stored.
-AI prompt: "Go into teacher mode and help me build the registry. What packages should I use and what do these packages do? What libraries inside the packages should I use and why? Where do I start building the registry — without giving me the code."
+**Decision:** Build the registry incrementally — understand the packages (`sync`, `net-cat/internal/client`) before writing any method.
+**Reason:** Starting from the imports forces understanding of what each dependency provides before using it. `sync` gives `Mutex` for safe concurrent access; the `client` package defines the type being stored.
+**AI prompt:** "Go into teacher mode and help me build the registry. What packages should I use and what do these packages do? What libraries inside the packages should I use and why? Where do I start building the registry — without giving me the code."
 
 ## 2026-04-15 — Vasiliki
-Decision: Learn Go syntax by writing it, not by reading explanations — e.g. how to call `mu.Lock()`, how `defer` works, how to write a method receiver.
-Reason: Theoretical explanation of what to do does not transfer to knowing how to write it in Go. The missing skill was syntax and Go idioms, not concept understanding.
-AI prompt: "The point isn't to explain what to do — the point is to give me the necessary knowledge of how to write it in Go without giving me the code. That's the skill you need to master — writing and explaining again and again. Explaining what I need to do theoretically doesn't help me understand how to write it in Go, and that's the biggest issue, because I said I don't know Go, I am learning. I haven't used sync in the past, I don't know how to lock a mutex, etc."
+**Decision:** Learn Go syntax by writing it, not by reading explanations — e.g. how to call `mu.Lock()`, how `defer` works, how to write a method receiver.
+**Reason:** Theoretical explanation of what to do does not transfer to knowing how to write it in Go. The missing skill was syntax and Go idioms, not concept understanding.
+**AI prompt:** "The point isn't to explain what to do — the point is to give me the necessary knowledge of how to write it in Go without giving me the code. That's the skill you need to master — writing and explaining again and again. Explaining what I need to do theoretically doesn't help me understand how to write it in Go, and that's the biggest issue, because I said I don't know Go, I am learning. I haven't used sync in the past, I don't know how to lock a mutex, etc."
 
 ## 2026-04-15 — Vasiliki
-Decision: Use `defer r.mu.Unlock()` immediately after `r.mu.Lock()` in every method.
-Reason: First attempt placed `make()` inside Add and called `r.muUnlock()` (missing dot). `defer` guarantees the unlock runs even if the function panics, and placing it right after Lock makes it impossible to forget.
-AI prompt: [first attempt at Add with bugs — map re-created on every call, missing dot on Unlock, no defer]
+**Decision:** Use `defer r.mu.Unlock()` immediately after `r.mu.Lock()` in every method.
+**Reason:** First attempt placed `make()` inside Add and called `r.muUnlock()` (missing dot). `defer` guarantees the unlock runs even if the function panics, and placing it right after Lock makes it impossible to forget.
+**AI prompt:** [first attempt at Add with bugs — map re-created on every call, missing dot on Unlock, no defer]
 
 ## 2026-04-15 — Vasiliki
-Decision: Implement `Add`, `Remove`, and `All` as the three methods of `registry`.
-Reason: These are the minimum operations a set needs — register, deregister, and snapshot. `All` returns a slice copy so callers iterate safely without holding the lock.
-AI prompt: [iterative implementation of Add → Remove → All, each refined from previous attempt]
+**Decision:** Implement `Add`, `Remove`, and `All` as the three methods of `registry`.
+**Reason:** These are the minimum operations a set needs — register, deregister, and snapshot. `All` returns a slice copy so callers iterate safely without holding the lock.
+**AI prompt:** [iterative implementation of Add → Remove → All, each refined from previous attempt]
 
 
 ---
