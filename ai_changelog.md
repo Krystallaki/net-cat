@@ -75,6 +75,20 @@ Decision: Implement `Add`, `Remove`, and `All` as the three methods of `registry
 Reason: These are the minimum operations a set needs — register, deregister, and snapshot. `All` returns a slice copy so callers iterate safely without holding the lock.
 AI prompt: [iterative implementation of Add → Remove → All, each refined from previous attempt]
 
+## 2026-04-19 — Vasiliki
+Decision: Define `Server` as a struct with a `registry`, a `net.Listener`, and a `port` field, with a `Start` method on the pointer receiver.
+Reason: A free function `Start(port string)` has no receiver and cannot store state — the listener and registry need to live somewhere accessible across the server's lifetime. Attaching `Start` to `*Server` gives it access to all fields.
+AI prompt: "What is a listener and how is it defined in my codebase?"
+
+## 2026-04-19 — Vasiliki
+Decision: Initialize the registry inside `Start` using `&registry{clients: make(map[*client.Client]struct{})}` rather than a constructor.
+Reason: First attempt passed `":port"` as a literal string instead of `":" + port`, used `make` with wrong syntax, and returned a generic `error` value instead of `err`. Each iteration isolated one mistake at a time until the correct form was reached.
+AI prompt: [iterative implementation of Start — wrong string literal → wrong make syntax → returning error instead of err → correct form]
+
+## 2026-04-19 — Vasiliki
+Decision: Use an infinite `for` loop calling `s.listener.Accept()` to handle incoming connections concurrently, registering each new client immediately after accept.
+Reason: `Accept()` blocks until a connection arrives — a loop is the only way to keep accepting multiple clients. Each accepted connection is wrapped in a `client.Client` and added to the registry so the server always has an up-to-date snapshot of who is connected.
+AI prompt: "Explain what we have done so far" / [attempt with wrong make syntax for newClient → correct form using `&client.Client{Conn: conn, Name: ""}`]
 
 ---
 
