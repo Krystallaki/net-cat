@@ -1,38 +1,53 @@
 // Package server implements the TCP listener and client lifecycle for TCPChat.
+// It accepts incoming connections, enforces a maximum client limit,
+// and dispatches each connection to its own goroutine for concurrent handling.
 package server
-import "net"
+
+import (
+	"log"
+	"net"
+	"net-cat/internal/client"
+)
+
 // Server manages the TCP listener and connected clients.
+// It holds the active listener, the port it is bound to,
+// and a thread-safe registry of all currently connected clients.
 type Server struct {
 	registry *registry
 	listener net.Listener
-	port string
+	port     string
 }
 
-// TODO (Vasiliki): Start(port string) error — bind listener, accept connections, enforce max 10
+// Start binds the TCP listener on the given port, initialises the client registry,
+// and accepts incoming connections in a loop. Each connection is registered and
+// handled in its own goroutine. Returns an error if the listener cannot be created.
 func (s *Server) Start(port string) error {
-s.port = port
-listener,err:= net.Listen("tcp",":"+ port)
-if err!=nil {
-	return err
-}
-s.listener=listener
-s.registry= &registry{
-	clients:make(map[*client.Client]struct{})
-}
-for  {
-	conn,err:=s.listener.Accept()
-	if err!=nil {
-		log.Println("failed to accept connection:",err)
-		continue
+	s.port = port
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		return err
 	}
-	if len(s.registry.clients)>=10 {
-		conn.Write([]byte("Chat is full. Try again later.\n"))	
-		conn.Close()
-		continue
+	s.listener = listener
+	s.registry = &registry{
+		clients: make(map[*client.Client]struct{}),
 	}
-	newClient:=&client.Client{Conn:conn,Name:""}
-	s.registry.Add(newClient)
-	go handleClient(newClient)
-}
-return nil
+	for {
+		conn, err := s.listener.Accept()
+		if err != nil {
+			log.Println("failed to accept connection:", err)
+			continue
+		}
+		if len(s.registry.All()) >= 10 {
+			if _, err := conn.Write([]byte("Chat is full. Try again later.\n")); err != nil {
+				log.Println("failed to notify full chat:", err)
+			}
+			conn.Close()
+			continue
+		}
+
+		newClient := &client.Client{Conn: conn, Name: ""}
+		s.registry.Add(newClient)
+		go handleClient(newClient)
+	}
+	return nil
 }
