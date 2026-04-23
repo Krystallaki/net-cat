@@ -103,4 +103,27 @@ AI prompt: "According to my task, what else do I have to do?" / "How can I send 
 
 # Theo
 
-<!-- Theo: add entries here in the same commit as your code changes -->
+## 2026-04-22 — Theo
+**Decision:** `FormatMessage` takes `time.Time`, `name`, and `body` as separate parameters rather than a `Message` struct.
+**Reason:** A pure function with explicit parameters is easier to test — you can pass a fixed `time.Date(...)` and get a deterministic output. Passing a struct would couple the formatter to the `Message` type and make the test setup heavier.
+**AI prompt:** "Why do we use time.UTC in the test and not just time.Now()? Does the formatter care about the timezone?"
+
+## 2026-04-22 — Theo
+**Decision:** `IsEmpty` trims whitespace before checking for empty string, rather than just checking `body == ""`.
+**Reason:** A message of only spaces or newlines has no content — broadcasting it would send a blank line to all clients. `strings.TrimSpace` catches both the empty string and the whitespace-only case in one check.
+**AI prompt:** "What happens if someone just presses space and hits enter? Would `body == ""` catch that or do we need something else?"
+
+## 2026-04-22 — Theo
+**Decision:** `History` stores already-formatted message strings, not `Message` structs, and protects them with a `sync.Mutex`.
+**Reason:** Messages are formatted at send time — storing the formatted string means `Replay` writes each line directly to the connection with no transformation. The mutex is needed because `HandleClient` goroutines from multiple clients call `Add` concurrently.
+**AI prompt:** "Should History store Message structs or already-formatted strings? What's the difference when we replay to a new client?"
+
+## 2026-04-22 — Theo
+**Decision:** `HandleClient` sends history to the new client BEFORE calling `NotifyJoin`.
+**Reason:** If join is broadcast first, the new client sees their own join notification before the history loads — confusing. History first means the new client sees the full conversation context and the join line appears at the bottom as the most recent event.
+**AI prompt:** "Does the order of history replay vs join notification actually matter visually? What would the client see if we swapped them?"
+
+## 2026-04-22 — Theo
+**Decision:** `Registry` in the messaging package is a separate type from Vasiliki's internal `registry` in the server package, using a `[]*client.Client` slice instead of a map.
+**Reason:** The server's `registry` is unexported and cannot be used outside the `server` package. The messaging layer needs its own registry to pass to `HandleClient` and `Broadcast`. A slice is simpler — with a max of 10 clients the linear scan for `Remove` has no measurable cost.
+**AI prompt:** "Can I just use Vasiliki's registry directly in HandleClient, or do I need my own? Why can't I access it from the messaging package?"
