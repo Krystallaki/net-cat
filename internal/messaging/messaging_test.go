@@ -1,7 +1,9 @@
 package messaging
 
 import (
+	"bufio"
 	"net"
+	"strings"
 	"testing"
 	"time"
 )
@@ -39,14 +41,16 @@ func TestHistory_AppendAndReplay(t *testing.T) {
 	h.Add("[2020-01-20 15:48:42][Yenlik]:world")
 
 	serverSide, clientSide := net.Pipe()
-	defer serverSide.Close()
 	defer clientSide.Close()
 
 	done := make(chan string, 1)
 	go func() {
-		buf := make([]byte, 256)
-		n, _ := clientSide.Read(buf)
-		done <- string(buf[:n])
+		var sb strings.Builder
+		scanner := bufio.NewScanner(clientSide)
+		for scanner.Scan() {
+			sb.WriteString(scanner.Text() + "\n")
+		}
+		done <- sb.String()
 	}()
 
 	h.Replay(serverSide)
