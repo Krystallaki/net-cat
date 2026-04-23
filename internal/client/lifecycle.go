@@ -48,5 +48,12 @@ func ReadName(conn net.Conn) (string, error) {
 	return "", fmt.Errorf("connection closed before name was provided")
 }
 
-// TODO (Krysta): NotifyJoin broadcasts "<name> has joined our chat..." to all clients except the one who joined.
-// TODO (Krysta): NotifyLeave broadcasts "<name> has left our chat..." to all remaining clients.
+// NotifyJoin broadcasts that c has joined to all clients except c itself.
+func NotifyJoin(clients []*Client, c *Client) {
+	Broadcast(clients, c.Name+" has joined our chat...\n", c)
+}
+
+// NotifyLeave broadcasts that c has left to all clients except c itself.
+func NotifyLeave(clients []*Client, c *Client) {
+	Broadcast(clients, c.Name+" has left our chat...\n", c)
+}
