@@ -44,6 +44,10 @@
 **Decision:** Send message history to new client BEFORE broadcasting the join notification.
 **Reason:** The new client must see conversation context before their arrival is announced. If reversed, the join notification appears before the history in the new client's terminal — confusing and wrong.
 
+## 2026-04-23 — Krystallenia
+**Decision:** `Broadcast` iterates the client slice with a pointer equality check (`c == exclude`) and writes with `fmt.Fprint`.
+**Reason:** `fmt.Fprint` accepts any `io.Writer` — `net.Conn` implements it — so no manual byte conversion needed. Write errors on individual connections are silently ignored here; disconnect cleanup is Theo's responsibility in wiring.go.
+
 <!-- add new entries below this line as you work -->
 
 ---
