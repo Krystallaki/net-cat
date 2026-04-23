@@ -13,3 +13,21 @@ func TestFormatMessage(t *testing.T) {
 		t.Errorf("got %q, want %q", got, want)
 	}
 }
+
+func TestIsEmpty_EmptyString(t *testing.T) {
+	if !IsEmpty("") {
+		t.Error("expected empty string to be empty")
+	}
+}
+
+func TestIsEmpty_WhitespaceOnly(t *testing.T) {
+	if !IsEmpty("   ") {
+		t.Error("expected whitespace-only string to be empty")
+	}
+}
+
+func TestIsEmpty_NonEmpty(t *testing.T) {
+	if IsEmpty("hello") {
+		t.Error("expected non-empty string to not be empty")
+	}
+}
