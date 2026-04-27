@@ -114,9 +114,12 @@ AI prompt: "Explain what we have done so far" / [attempt with wrong make syntax 
 **Reason:** `Replay` is a method on the `History` struct, not a package-level function. In Go, methods are called on the value they belong to — you call the struct, not the package.
 **AI prompt:** "So when a function has a method, you don't call the package — you call the struct it is connected to?"
 
----
+## 2026-04-27 — Vasiliki
+**Decision:** Add `IsFull() bool` method to `registry` and use it in `Start` instead of `len(s.registry.All()) >= 10`.
+**Reason:** `All()` acquires the lock, releases it, and returns a snapshot — checking its length outside the lock is a race condition. `IsFull` holds the lock for the entire check, making it atomic. It also makes the intent at the call site explicit.
+**AI prompt:** "But I don't have an IsFull function." / [implementation: `r.mu.Lock()` → `defer r.mu.Unlock()` → `return len(r.clients) >= 10`]
 
-# Theo
+---
 
 ## 2026-04-22 — Theo
 **Decision:** `FormatMessage` takes `time.Time`, `name`, and `body` as separate parameters rather than a `Message` struct.

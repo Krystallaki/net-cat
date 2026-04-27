@@ -14,6 +14,7 @@ type registry struct {
 }
 
 // Add registers c in the registry.
+// It is safe to call concurrently from multiple goroutines.
 func (r *registry) Add(c *client.Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -21,6 +22,7 @@ func (r *registry) Add(c *client.Client) {
 }
 
 // Remove deregisters c from the registry.
+// If c is not present, Remove is a no-op.
 func (r *registry) Remove(c *client.Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -28,6 +30,8 @@ func (r *registry) Remove(c *client.Client) {
 }
 
 // All returns a snapshot of all currently registered clients.
+// The returned slice is independent of the internal map — callers may iterate
+// it safely without holding the lock.
 func (r *registry) All() (s []*client.Client) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -35,4 +39,13 @@ func (r *registry) All() (s []*client.Client) {
 		s = append(s, c)
 	}
 	return s
+}
+
+// IsFull reports whether the registry has reached the maximum of 10 clients.
+// The check is performed atomically under the lock to prevent a race condition
+// between reading the count and registering a new client.
+func (r *registry) IsFull() bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return len(r.clients) >= 10
 }

@@ -39,7 +39,7 @@ func (s *Server) Start(port string) error {
 			log.Println("failed to accept connection:", err)
 			continue
 		}
-		if len(s.registry.All()) >= 10 {
+		if s.registry.IsFull() {
 			if _, err := conn.Write([]byte("Chat is full. Try again later.\n")); err != nil {
 				log.Println("failed to notify full chat:", err)
 			}
@@ -53,9 +53,15 @@ func (s *Server) Start(port string) error {
 	}
 	return nil
 }
+
+// handleClient runs the full lifecycle for a single connected client.
+// It sends the welcome banner, reads and validates the client's name,
+// replays message history, announces the join, enters the message loop,
+// and announces the leave on disconnect. The connection and registry entry
+// are cleaned up via defer regardless of how the function exits.
 func (s *Server) handleClient(newClient *client.Client, history *messaging.History) {
-	defer s.registry.Remove(newClient)
 	defer newClient.Conn.Close()
+	defer s.registry.Remove(newClient)
 	client.SendWelcome(newClient.Conn)
 	name, err := client.ReadName(newClient.Conn)
 	if err != nil {
