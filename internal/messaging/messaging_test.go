@@ -66,97 +66,19 @@ func TestHistory_AppendAndReplay(t *testing.T) {
 	}
 }
 
-func TestHandleClient_SetsNameAndBroadcastsJoin(t *testing.T) {
+func TestRunMessageLoop_AddsToHistory(t *testing.T) {
 	serverSide, clientSide := net.Pipe()
 	defer clientSide.Close()
 
-	reg := NewRegistry()
+	c := &client.Client{Conn: serverSide, Name: "Theo"}
 	hist := &History{}
-
-	c := &client.Client{Conn: serverSide}
-	reg.Add(c)
+	all := func() []*client.Client { return []*client.Client{c} }
 
 	done := make(chan struct{})
 	go func() {
-		HandleClient(c, reg, hist)
+		RunMessageLoop(c, all, hist)
 		close(done)
 	}()
-
-	// read and discard the welcome banner
-	buf := make([]byte, 512)
-	clientSide.Read(buf)
-
-	// send name
-	fmt.Fprint(clientSide, "Theo\n")
-
-	// read join notification sent to all (only one client so nobody else receives it,
-	// but we can assert the name was set)
-	time.Sleep(20 * time.Millisecond)
-	if c.Name != "Theo" {
-		t.Errorf("expected client name 'Theo', got %q", c.Name)
-	}
-
-	clientSide.Close()
-	<-done
-}
-
-func TestHandleClient_EmptyMessageNotBroadcast(t *testing.T) {
-	serverSide, clientSide := net.Pipe()
-	defer clientSide.Close()
-
-	reg := NewRegistry()
-	hist := &History{}
-
-	c := &client.Client{Conn: serverSide}
-	reg.Add(c)
-
-	done := make(chan struct{})
-	go func() {
-		HandleClient(c, reg, hist)
-		close(done)
-	}()
-
-	buf := make([]byte, 512)
-	clientSide.Read(buf)
-	fmt.Fprint(clientSide, "Theo\n")
-	time.Sleep(20 * time.Millisecond)
-
-	// send empty message
-	fmt.Fprint(clientSide, "\n")
-	time.Sleep(20 * time.Millisecond)
-
-	hist.mu.Lock()
-	count := len(hist.messages)
-	hist.mu.Unlock()
-
-	if count != 0 {
-		t.Errorf("expected 0 messages in history after empty send, got %d", count)
-	}
-
-	clientSide.Close()
-	<-done
-}
-
-func TestHandleClient_MessageAddedToHistory(t *testing.T) {
-	serverSide, clientSide := net.Pipe()
-	defer clientSide.Close()
-
-	reg := NewRegistry()
-	hist := &History{}
-
-	c := &client.Client{Conn: serverSide}
-	reg.Add(c)
-
-	done := make(chan struct{})
-	go func() {
-		HandleClient(c, reg, hist)
-		close(done)
-	}()
-
-	buf := make([]byte, 512)
-	clientSide.Read(buf)
-	fmt.Fprint(clientSide, "Theo\n")
-	time.Sleep(20 * time.Millisecond)
 
 	fmt.Fprint(clientSide, "hello world\n")
 	time.Sleep(20 * time.Millisecond)
@@ -173,31 +95,54 @@ func TestHandleClient_MessageAddedToHistory(t *testing.T) {
 	<-done
 }
 
-func TestHandleClient_RemovesClientOnDisconnect(t *testing.T) {
+func TestRunMessageLoop_EmptyMessageNotAdded(t *testing.T) {
 	serverSide, clientSide := net.Pipe()
+	defer clientSide.Close()
 
-	reg := NewRegistry()
+	c := &client.Client{Conn: serverSide, Name: "Theo"}
 	hist := &History{}
-
-	c := &client.Client{Conn: serverSide}
-	reg.Add(c)
+	all := func() []*client.Client { return []*client.Client{c} }
 
 	done := make(chan struct{})
 	go func() {
-		HandleClient(c, reg, hist)
+		RunMessageLoop(c, all, hist)
 		close(done)
 	}()
 
-	buf := make([]byte, 512)
-	clientSide.Read(buf)
-	fmt.Fprint(clientSide, "Theo\n")
+	fmt.Fprint(clientSide, "\n")
 	time.Sleep(20 * time.Millisecond)
+
+	hist.mu.Lock()
+	count := len(hist.messages)
+	hist.mu.Unlock()
+
+	if count != 0 {
+		t.Errorf("expected 0 messages in history after empty send, got %d", count)
+	}
 
 	clientSide.Close()
 	<-done
+}
 
-	if len(reg.All()) != 0 {
-		t.Errorf("expected client to be removed from registry after disconnect")
+func TestRunMessageLoop_ExitsOnDisconnect(t *testing.T) {
+	serverSide, clientSide := net.Pipe()
+
+	c := &client.Client{Conn: serverSide, Name: "Theo"}
+	hist := &History{}
+	all := func() []*client.Client { return []*client.Client{c} }
+
+	done := make(chan struct{})
+	go func() {
+		RunMessageLoop(c, all, hist)
+		close(done)
+	}()
+
+	clientSide.Close()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Error("RunMessageLoop did not exit after client disconnected")
 	}
 }
 
