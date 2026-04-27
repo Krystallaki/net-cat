@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net-cat/internal/client"
+	"net-cat/internal/messaging"
 )
 
 // Server manages the TCP listener and connected clients.
@@ -31,6 +32,7 @@ func (s *Server) Start(port string) error {
 	s.registry = &registry{
 		clients: make(map[*client.Client]struct{}),
 	}
+	history := &messaging.History{}
 	for {
 		conn, err := s.listener.Accept()
 		if err != nil {
@@ -47,7 +49,21 @@ func (s *Server) Start(port string) error {
 
 		newClient := &client.Client{Conn: conn, Name: ""}
 		s.registry.Add(newClient)
-		go handleClient(newClient)
+		go s.handleClient(newClient, history)
 	}
 	return nil
+}
+func (s *Server) handleClient(newClient *client.Client, history *messaging.History) {
+	defer s.registry.Remove(newClient)
+	defer newClient.Conn.Close()
+	client.SendWelcome(newClient.Conn)
+	name, err := client.ReadName(newClient.Conn)
+	if err != nil {
+		return
+	}
+	newClient.Name = name
+	history.Replay(newClient.Conn)
+	client.NotifyJoin(s.registry.All(), newClient)
+	messaging.RunMessageLoop(newClient, s.registry.All, history)
+	client.NotifyLeave(s.registry.All(), newClient)
 }

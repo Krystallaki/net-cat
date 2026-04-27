@@ -94,10 +94,25 @@ Decision: Use an infinite `for` loop calling `s.listener.Accept()` to handle inc
 Reason: `Accept()` blocks until a connection arrives — a loop is the only way to keep accepting multiple clients. Each accepted connection is wrapped in a `client.Client` and added to the registry so the server always has an up-to-date snapshot of who is connected.
 AI prompt: "Explain what we have done so far" / [attempt with wrong make syntax for newClient → correct form using `&client.Client{Conn: conn, Name: ""}`]
 
-## 2026-04-19 — Vasiliki
-Decision: Enforce a maximum of 10 concurrent clients by checking `len(s.registry.clients) >= 10` before registering a new connection, writing a rejection message and closing the connection if the limit is reached.
-Reason: The check must happen before `Add` — once a client is registered it is visible to `Broadcast`. Writing `[]byte("Chat is full. Try again later.\n")` is required because `conn.Write` takes a byte slice, not a string. First attempt passed a raw string literal instead of a byte slice.
-AI prompt: "According to my task, what else do I have to do?" / "How can I send a message through conn?" / [iterative fix: raw string instead of byte slice → correct form]
+## 2026-04-27 — Vasiliki
+**Decision:** Enforce a maximum of 10 concurrent clients by checking `len(s.registry.clients) >= 10` before registering a new connection, writing a rejection message and closing the connection if the limit is reached.
+**Reason:** The check must happen before `Add` — once a client is registered it is visible to `Broadcast`. Writing `[]byte("Chat is full. Try again later.\n")` is required because `conn.Write` takes a byte slice, not a string. First attempt passed a raw string literal instead of a byte slice.
+**AI prompt:** "According to my task, what else do I have to do?" / "How can I send a message through conn?" / [iterative fix: raw string instead of byte slice → correct form]
+
+## 2026-04-27 — Vasiliki
+**Decision:** Implement `handleClient` as a method on `*Server` that runs the full client lifecycle: defer cleanup → welcome → read name → history replay → join notify → message loop → leave notify.
+**Reason:** `Start` was calling `messaging.RunMessageLoop` directly, skipping the welcome banner, name reading, and join/leave notifications. All of those steps belong in a single coordinator function so `Start` stays focused on accepting connections.
+**AI prompt:** "How many times have I told you — you are in teacher mode?" / "So I am calling welcome in the handleClient function?" / "All of that is very theoretical. The problem is I need hints. I am learning to write Go now. I don't need you to dictate what to do, but help me do it without giving me the answer." / [iterative implementation: wrong receiver → defer placement → assigning SendWelcome to a variable → wrong Replay call on package instead of struct → correct form with `history.Replay`, `client.NotifyJoin`, `messaging.RunMessageLoop`, `client.NotifyLeave`]
+
+## 2026-04-27 — Vasiliki
+**Decision:** Do not assign the return value of `client.SendWelcome` — it returns nothing, so no variable is needed.
+**Reason:** In Go you only assign a function's result to a variable if the function returns something. `SendWelcome` writes to the connection and returns nothing, so `welcome := client.SendWelcome(...)` is a compile error.
+**AI prompt:** "So I assign it to a variable only if it is returning something?"
+
+## 2026-04-27 — Vasiliki
+**Decision:** Call `history.Replay(newClient.Conn)` on the struct instance, not `messaging.Replay(...)`.
+**Reason:** `Replay` is a method on the `History` struct, not a package-level function. In Go, methods are called on the value they belong to — you call the struct, not the package.
+**AI prompt:** "So when a function has a method, you don't call the package — you call the struct it is connected to?"
 
 ---
 
