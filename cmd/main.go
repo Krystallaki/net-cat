@@ -8,16 +8,23 @@ import (
 	"fmt"
 	"net-cat/internal/server"
 	"os"
-	"strconv"
+	"strings"
 )
 
 const defaultPort = "8989"
 
 // validatePort reports whether port is a valid TCP port number (1–65535).
+// It checks that the string contains only digits and falls within the valid range.
 func validatePort(port string) bool {
-	n, err := strconv.Atoi(port)
-	if err != nil {
+	if len(port) == 0 || len(port) > 5 {
 		return false
+	}
+	if strings.TrimLeft(port, "0123456789") != "" {
+		return false
+	}
+	n := 0
+	for _, ch := range port {
+		n = n*10 + int(ch-'0')
 	}
 	return n >= 1 && n <= 65535
 }
