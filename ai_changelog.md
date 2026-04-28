@@ -119,6 +119,21 @@ AI prompt: "Explain what we have done so far" / [attempt with wrong make syntax 
 **Reason:** `All()` acquires the lock, releases it, and returns a snapshot — checking its length outside the lock is a race condition. `IsFull` holds the lock for the entire check, making it atomic. It also makes the intent at the call site explicit.
 **AI prompt:** "But I don't have an IsFull function." / [implementation: `r.mu.Lock()` → `defer r.mu.Unlock()` → `return len(r.clients) >= 10`]
 
+## 2026-04-28 — Vasiliki
+**Decision:** Implement `main.go` with arg parsing, a `defaultPort` constant, and a call to `srv.Start(port)`.
+**Reason:** `os.Args[1:]` gives the arguments after the binary name. The default port is a constant so it is defined once and reused. First attempt used `=` instead of `==` in the if conditions — in Go `=` is assignment, `==` is comparison.
+**AI prompt:** "Help me do the main." / [code attempt with `=` instead of `==`] / "Can I make `const port := \"8989\"`?" / [iterative fix: wrong assignment operator → const vs var distinction → correct form]
+
+## 2026-04-28 — Vasiliki
+**Decision:** Use `const defaultPort = "8989"` for the default port, not `const port := "8989"` or `var port`.
+**Reason:** In Go, `:=` is short variable declaration and cannot be used with `const`. Constants use `=` without a type when the type can be inferred. `port` itself must be a `var` because its value depends on the arguments at runtime.
+**AI prompt:** "Can I make `const port := \"8989\"`?"
+
+## 2026-04-28 — Vasiliki
+**Decision:** Refactor `main.go` by extracting `resolvePort` and `parseArgs` as separate testable functions.
+**Reason:** `main()` cannot be tested directly. Extracting the argument parsing logic into `parseArgs(args []string) (string, bool)` allows the test file to call it with controlled inputs and assert the correct port or rejection without spawning a process.
+**AI prompt:** "I am thinking about refactoring it. Any suggestions?"
+
 ---
 
 ## 2026-04-22 — Theo
