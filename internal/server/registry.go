@@ -49,3 +49,17 @@ func (r *registry) IsFull() bool {
 	defer r.mu.Unlock()
 	return len(r.clients) >= 10
 }
+
+// AddIfNotFull registers c and returns true if the registry is not full.
+// If the registry already holds 10 clients, it returns false without adding c.
+// The check and add are performed atomically under the lock to prevent a race
+// between two goroutines both passing the full check before either adds.
+func (r *registry) AddIfNotFull(c *client.Client) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if len(r.clients) >= 10 {
+		return false
+	}
+	r.clients[c] = struct{}{}
+	return true
+}

@@ -48,7 +48,6 @@ func (s *Server) Start(port string) error {
 		}
 
 		newClient := &client.Client{Conn: conn, Name: ""}
-		s.registry.Add(newClient)
 		go s.handleClient(newClient, history)
 	}
 	return nil
@@ -60,14 +59,20 @@ func (s *Server) Start(port string) error {
 // and announces the leave on disconnect. The connection and registry entry
 // are cleaned up via defer regardless of how the function exits.
 func (s *Server) handleClient(newClient *client.Client, history *messaging.History) {
-	defer newClient.Conn.Close()
 	defer s.registry.Remove(newClient)
+	defer newClient.Conn.Close()
 	client.SendWelcome(newClient.Conn)
 	name, err := client.ReadName(newClient.Conn)
 	if err != nil {
 		return
 	}
 	newClient.Name = name
+	if !s.registry.AddIfNotFull(newClient) {
+		if _, err := newClient.Conn.Write([]byte("Chat is full. Try again later.\n")); err != nil {
+			log.Println("failed to notify full chat:", err)
+		}
+		return
+	}
 	history.Replay(newClient.Conn)
 	client.NotifyJoin(s.registry.All(), newClient)
 	messaging.RunMessageLoop(newClient, s.registry.All, history)

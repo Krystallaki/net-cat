@@ -8,12 +8,21 @@ import (
 	"fmt"
 	"net-cat/internal/server"
 	"os"
+	"strconv"
 )
 
 const defaultPort = "8989"
 
+// validatePort reports whether port is a valid TCP port number (1–65535).
+func validatePort(port string) bool {
+	n, err := strconv.Atoi(port)
+	if err != nil {
+		return false
+	}
+	return n >= 1 && n <= 65535
+}
+
 // resolvePort returns defaultPort when no argument is provided, or the given argument otherwise.
-// It does not validate whether the port is a valid number or in a valid range.
 func resolvePort(args []string) string {
 	if len(args) == 0 {
 		return defaultPort
@@ -22,13 +31,16 @@ func resolvePort(args []string) string {
 }
 
 // parseArgs validates os.Args and returns the port to listen on.
-// It returns "", false if more than one argument is provided,
-// signalling that the caller should print a usage error and exit.
+// It returns "", false if more than one argument is provided or the port is invalid.
 func parseArgs(args []string) (string, bool) {
 	if len(args) > 1 {
 		return "", false
 	}
-	return resolvePort(args), true
+	port := resolvePort(args)
+	if !validatePort(port) {
+		return "", false
+	}
+	return port, true
 }
 
 // main parses arguments, resolves the port, and starts the TCP server.
