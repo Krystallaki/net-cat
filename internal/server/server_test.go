@@ -22,14 +22,12 @@ func startServer(t *testing.T, port string) func() net.Conn {
 	}
 }
 
-// TestStart_ListenerBinds verifies the server starts and listens on the given port.
 func TestStart_ListenerBinds(t *testing.T) {
 	dial := startServer(t, "9001")
 	conn := dial()
 	defer conn.Close()
 }
 
-// TestStart_AcceptsUpToTenClients verifies that 10 clients connect without rejection.
 func TestStart_AcceptsUpToTenClients(t *testing.T) {
 	dial := startServer(t, "9002")
 	conns := make([]net.Conn, 10)
@@ -39,8 +37,6 @@ func TestStart_AcceptsUpToTenClients(t *testing.T) {
 	}
 }
 
-// TestStart_RejectsEleventhClient verifies the 11th client receives the rejection
-// message and has its connection closed by the server.
 func TestStart_RejectsEleventhClient(t *testing.T) {
 	dial := startServer(t, "9003")
 	conns := make([]net.Conn, 10)

@@ -1,5 +1,3 @@
-// Package server implements the TCP chat server, managing client connections,
-// message broadcasting, and the lifecycle of each connected session.
 package server
 
 import (

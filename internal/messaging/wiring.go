@@ -1,5 +1,3 @@
-// Package messaging handles message formatting, history, delivery, and clean
-// goroutine teardown for TCPChat.
 package messaging
 
 import (
