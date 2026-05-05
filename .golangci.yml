@@ -1,23 +1,24 @@
+version: "2"
+
 run:
   timeout: 5m
 
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - unused
+
+formatters:
+  enable:
     - gofmt
     - goimports
-    - misspell
-    - unconvert
-    - whitespace
-
-linters-settings:
-  goimports:
-    local-prefixes: net-cat
+  settings:
+    goimports:
+      local-prefixes:
+        - net-cat
 
 issues:
   max-same-issues: 0
