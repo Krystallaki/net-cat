@@ -25,9 +25,9 @@ vet:
 lint:
 	golangci-lint run ./...
 
-## Run all tests with race detector
+## Run all tests with race detector, verbose output, and coverage
 test:
-	go test -race ./...
+	go test -v -race -cover ./...
 
 ## Run tests and print coverage summary
 coverage:
