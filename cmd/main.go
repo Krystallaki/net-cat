@@ -6,9 +6,10 @@ package main
 
 import (
 	"fmt"
-	"net-cat/internal/server"
 	"os"
 	"strings"
+
+	"net-cat/internal/server"
 )
 
 const defaultPort = "8989"

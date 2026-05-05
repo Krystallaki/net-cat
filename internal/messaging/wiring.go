@@ -2,8 +2,9 @@ package messaging
 
 import (
 	"bufio"
-	"net-cat/internal/client"
 	"time"
+
+	"net-cat/internal/client"
 )
 
 // RunMessageLoop reads lines from c until the connection closes or an error occurs.

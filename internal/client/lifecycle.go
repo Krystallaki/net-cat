@@ -28,7 +28,7 @@ const welcomeBanner = "Welcome to TCP-Chat!\n" +
 
 // SendWelcome sends the Linux banner and name prompt to the client.
 func SendWelcome(conn net.Conn) {
-	fmt.Fprint(conn, welcomeBanner)
+	fmt.Fprint(conn, welcomeBanner) //nolint:errcheck
 }
 
 // ReadName reads a non-empty name from the client connection.
@@ -40,7 +40,7 @@ func ReadName(conn net.Conn) (string, error) {
 		if name != "" {
 			return name, nil
 		}
-		fmt.Fprint(conn, "[ENTER YOUR NAME]: ")
+		fmt.Fprint(conn, "[ENTER YOUR NAME]: ") //nolint:errcheck
 	}
 	if err := scanner.Err(); err != nil {
 		return "", err

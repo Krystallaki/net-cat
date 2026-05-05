@@ -9,6 +9,6 @@ func Broadcast(clients []*Client, msg string, exclude *Client) {
 		if c == exclude {
 			continue
 		}
-		fmt.Fprint(c.Conn, msg)
+		fmt.Fprint(c.Conn, msg) //nolint:errcheck
 	}
 }

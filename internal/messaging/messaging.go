@@ -37,6 +37,6 @@ func (h *History) Replay(conn net.Conn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	for _, msg := range h.messages {
-		fmt.Fprintln(conn, msg)
+		fmt.Fprintln(conn, msg) //nolint:errcheck
 	}
 }

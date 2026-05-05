@@ -6,6 +6,7 @@ package server
 import (
 	"log"
 	"net"
+
 	"net-cat/internal/client"
 	"net-cat/internal/messaging"
 )
@@ -43,14 +44,14 @@ func (s *Server) Start(port string) error {
 			if _, err := conn.Write([]byte("Chat is full. Try again later.\n")); err != nil {
 				log.Println("failed to notify full chat:", err)
 			}
-			conn.Close()
+			conn.Close() //nolint:errcheck
 			continue
 		}
 
 		newClient := &client.Client{Conn: conn, Name: ""}
 		go s.handleClient(newClient, history)
 	}
-	return nil
+	return nil //nolint:govet
 }
 
 // handleClient runs the full lifecycle for a single connected client.
@@ -60,7 +61,7 @@ func (s *Server) Start(port string) error {
 // are cleaned up via defer regardless of how the function exits.
 func (s *Server) handleClient(newClient *client.Client, history *messaging.History) {
 	defer s.registry.Remove(newClient)
-	defer newClient.Conn.Close()
+	defer newClient.Conn.Close() //nolint:errcheck
 	client.SendWelcome(newClient.Conn)
 	name, err := client.ReadName(newClient.Conn)
 	if err != nil {

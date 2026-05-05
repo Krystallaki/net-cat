@@ -1,8 +1,9 @@
 package server
 
 import (
-	"net-cat/internal/client"
 	"sync"
+
+	"net-cat/internal/client"
 )
 
 // registry is a thread-safe set of connected clients.
