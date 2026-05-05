@@ -16,9 +16,13 @@ A terminal-based group chat server written in Go. Up to 10 users connect simulta
 - Go 1.22 or later
 - No external dependencies — standard library only
 
-## Build and run
+## Getting started
 
 ```bash
+# Clone the repository
+git clone https://platform.zone01.gr/git/dkolovou/net-cat
+cd net-cat
+
 # Build the binary
 go build -o TCPChat ./cmd
 
@@ -37,6 +41,8 @@ make run
 ```
 
 ## Connect as a client
+
+Open a separate terminal for each participant:
 
 ```bash
 nc <server-ip> 8989
@@ -77,19 +83,32 @@ make coverage
 ## Project structure
 
 ```
-cmd/
-  main.go           entry point — arg parsing and server startup
-internal/
-  client/
-    client.go       Client and Message types
-    lifecycle.go    welcome banner, name prompt, join/leave notifications
-    broadcast.go    message delivery to multiple clients
-  server/
-    registry.go     thread-safe client registry (max 10)
-    server.go       TCP listener, accept loop, client lifecycle coordinator
-  messaging/
-    messaging.go    message formatting, empty check, history
-    wiring.go       message read loop
+net-cat/
+├── cmd/
+│   ├── main.go               entry point — arg parsing and server startup
+│   └── main_test.go
+├── internal/
+│   ├── client/
+│   │   ├── client.go         Client and Message types
+│   │   ├── lifecycle.go      welcome banner, name prompt, join/leave notifications
+│   │   ├── broadcast.go      message delivery to multiple clients
+│   │   ├── lifecycle_test.go
+│   │   └── broadcast_test.go
+│   ├── server/
+│   │   ├── registry.go       thread-safe client registry (max 10)
+│   │   ├── server.go         TCP listener, accept loop, client lifecycle coordinator
+│   │   └── server_test.go
+│   └── messaging/
+│       ├── messaging.go      message formatting, empty check, history
+│       ├── wiring.go         message read loop
+│       └── messaging_test.go
+├── AGENTS.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── Makefile
+├── README.md
+├── go.mod
+└── .golangci.yml
 ```
 
 ## Message format
