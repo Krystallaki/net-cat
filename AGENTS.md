@@ -65,7 +65,8 @@ go vet ./...
 |---|---|
 | `cmd/main.go`, TCP listener (`server.go`), client registry (`registry.go`) | Vasiliki |
 | `client/client.go`, welcome banner, name validation, join/leave, broadcast | Krysta |
-| Message formatting, empty guard, history, message loop, README | Theo |
+| Message formatting, empty guard, history, message loop | Theo |
+| `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `AGENTS.md` | Theo |
 
 ## Do not touch
 
@@ -74,4 +75,4 @@ go vet ./...
 
 ## Architectural decisions
 
-Log every non-obvious decision in `ai_changelog.md` in the same commit as the code change.
+Log every non-obvious decision in `ai_changelog.md` whenever relevant — no requirement to do it in the same commit as the code change.
