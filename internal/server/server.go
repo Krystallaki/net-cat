@@ -30,6 +30,7 @@ func (s *Server) Start(port string) error {
 		return err
 	}
 	s.listener = listener
+	log.Printf("Listening on port %s\n", port)
 	s.registry = &registry{
 		clients: make(map[*client.Client]struct{}),
 	}
