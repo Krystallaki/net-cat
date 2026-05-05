@@ -1,4 +1,4 @@
-.PHONY: all run build fmt vet test coverage tidy clean check
+.PHONY: all run build fmt vet lint test coverage tidy clean check
 
 BINARY  := TCPChat
 CMD_DIR := ./cmd
@@ -21,6 +21,10 @@ fmt:
 vet:
 	go vet ./...
 
+## Run golangci-lint
+lint:
+	golangci-lint run ./...
+
 ## Run all tests with race detector
 test:
 	go test -race ./...
@@ -39,5 +43,5 @@ tidy:
 clean:
 	rm -f $(BINARY) coverage.out
 
-## Run fmt, test, and build — use before every commit
-check: fmt test build
+## Run fmt, lint, test, and build — use before every commit
+check: fmt lint test build
